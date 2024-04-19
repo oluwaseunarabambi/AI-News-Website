@@ -8,7 +8,11 @@ import Contact from "./Contact";
 const AIWebsite = () => {
     const [articles, setArticles] = useState([]);
     const [searchTerm, setSearchTerm] = useState('');
+    const [selectedCategory, setSelectedCategory] = useState("General")
     const [filterdArticles, setFilteredArticles] = useState([]);
+    const [darkMode, setDarkMode] = useState(false); // state for dark mode
+
+    const { speak } = useSpeechSynthesis();
 
 
     useEffect(() => {
@@ -17,13 +21,22 @@ const AIWebsite = () => {
             .then(response => response.json())
             .then(data => {
                 // Set the fetched articles to the state
-                setArticles(data.articles);
-            })
+                // Modify the structure of articles to include multimedia content
+                const modifiedArticles = data.articles.map(article => ({
+                    ...article,
+                    multimedia: {
+                        image: article.urlToImage, // Assuming image URL is provided in urlToImage field
+                        video: null,  // You can fetch video URLs from another source if available
+                    }
+                }));
+                 setArticles(modifiedArticles);
+            })     
             .catch(error => console.error('Error Fetching articles:', error));
     }, []); // Empty dependency array ensures useEffect runs only after initial render
 
-    const { speak } = useSpeechSynthesis();
-
+    const toggleDarkMode = () => {
+        setDarkMode(!darkMode);
+    };
     const speakText = (title, description) => {
         speak( { text: title + '. ' + description});
     };
@@ -45,9 +58,9 @@ const AIWebsite = () => {
 
     return (
 
-        <div>
+        <div className={darkMode ? "dark-mode" : "light-mode"}> {/* Apply dark/light mode class */}
             <header>
-                <h1>AI News Website</h1>
+                <h1>Ginja News Website</h1>
                 <nav>
                     <ul>
                         <li><a href="#">Home</a></li>
@@ -55,10 +68,13 @@ const AIWebsite = () => {
                         <li><a href="Contact">Contact</a></li>
                     </ul>
                 </nav>
+                <button onClick={toggleDarkMode}>
+                    {darkMode ? "Switch to Light Mode" : "Switch to Dark Mode" }
+                </button>
             </header>
 
             <section id="hero">
-                <h2>Welcome to our AI News Website</h2>
+                <h2>Welcome to our Ginja News Website</h2>
                 <p>Stay updated with the latest headlines from every Country </p>
                 <form id="search-form" onSubmit={handleSubmit}>
                     <input type="text" id="search-input" name="search" value={searchTerm} onChange={handleChange} placeholder="Search News" />
@@ -74,6 +90,8 @@ const AIWebsite = () => {
                                 <h3>
                                    <a href={article.url} target="_blank" rel="noopener noreferrer">{article.title}</a>
                                 </h3>
+                                {article.multimedia.image && <img src={article.multimedia.image} alt="Article Thumbnail" />}
+                                {article.multimedia.video && <video src={article.multimedia.video} controls />}  
                                 <p>{article.description}</p>
                                 <button className="ReadArticleButton" onClick={ () => speak( { text: article.title + '. ' + article.description })}>
                                             Read Article
