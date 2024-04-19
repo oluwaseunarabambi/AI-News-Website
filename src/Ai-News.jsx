@@ -1,5 +1,6 @@
 import React, {useState, useEffect} from "react";
-import './styles/Styles.css'
+import './styles/Styles.css';
+import { useSpeechSynthesis } from 'react-speech-kit';
 import About from "./About";
 import Contact from "./Contact";
 
@@ -20,6 +21,12 @@ const AIWebsite = () => {
             })
             .catch(error => console.error('Error Fetching articles:', error));
     }, []); // Empty dependency array ensures useEffect runs only after initial render
+
+    const { speak } = useSpeechSynthesis();
+
+    const speakText = (title, description) => {
+        speak( { text: title + '. ' + description});
+    };
 
     const handleSubmit = (event) => {
         event.preventDefault(); // Prevent the form submitting normally
@@ -44,8 +51,8 @@ const AIWebsite = () => {
                 <nav>
                     <ul>
                         <li><a href="#">Home</a></li>
-                        <li><a href="#">About Us</a></li>
-                        <li><a href="#">Contact</a></li>
+                        <li><a href="AboutUs">About Us</a></li>
+                        <li><a href="Contact">Contact</a></li>
                     </ul>
                 </nav>
             </header>
@@ -60,14 +67,19 @@ const AIWebsite = () => {
             </section>
 
             <section id="latest-headlines">
-                <h2>Latest headline News</h2>
+                <u><h2>Latest headline News from Around the World</h2></u> 
                 <ul id="articles-list">
                     { (searchTerm ? filterdArticles : articles).map((article, index) => (
                         <li key={index}>
-                            <a href={article.url} target="_blank">
-                                <h3>{article.title}</h3>
+                                <h3>
+                                   <a href={article.url} target="_blank" rel="noopener noreferrer">{article.title}</a>
+                                </h3>
                                 <p>{article.description}</p>
-                            </a>
+                                <button className="ReadArticleButton" onClick={ () => speak( { text: article.title + '. ' + article.description })}>
+                                            Read Article
+                                </button>
+                                    {/* Add a console log to check article URLs */}
+                                    {console.log("Article URL:", article.url)}
                         </li>
                     ))}
                 </ul>
